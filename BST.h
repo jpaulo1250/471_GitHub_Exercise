@@ -210,3 +210,11 @@ void BST<Key, E>::printPostOrder(BSTNode<Key, E>* root) const {
   printPostOrder(root->right());
   visit(root);
 }
+
+void BST<Key, E>::
+printPreOrder(BSTNode<Key, E>* root, int level) const {
+  if (root == NULL) return;           // Empty tree
+  visit(root);						  // Print node value
+  printPreOrder(root->left(), level+1);   // Do left subtree
+  printPreOrder(root->right(), level+1);  // Do right subtree
+}
