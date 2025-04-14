@@ -218,3 +218,12 @@ printPreOrder(BSTNode<Key, E>* root, int level) const {
   printPreOrder(root->left(), level+1);   // Do left subtree
   printPreOrder(root->right(), level+1);  // Do right subtree
 }
+
+template <typename Key, typename E>
+void BST <Key, E>::
+printPostOrder(BSTNode<Key, E>* root, int level) const {
+  if (root == NULL) return;           // Empty tree
+  printPostOrder(root->left(), level+1);   // Do left subtree
+  printPostOrder(root->right(), level+1);  // Do right subtree
+  visit(root);						  // Print node value
+}
