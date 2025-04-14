@@ -20,13 +20,11 @@ template <class Key, class E>
 class BST : public Dictionary<Key,E> {
 private:
   BSTNode<Key,E>* root;   // Root of the BST
-  
-  int nodecount;         // Number of nodes in the BST
+  int nodecount;          // Number of nodes in the BST
 
   // Private "helper" functions
   void clearhelp(BSTNode<Key, E>*);
-  BSTNode<Key,E>* inserthelp(BSTNode<Key, E>*,
-                              const Key&, const E&);
+  BSTNode<Key,E>* inserthelp(BSTNode<Key, E>*, const Key&, const E&);
   BSTNode<Key,E>* deletemin(BSTNode<Key, E>*);
   BSTNode<Key,E>* getmin(BSTNode<Key, E>*);
   BSTNode<Key,E>* removehelp(BSTNode<Key, E>*, const Key&);
@@ -34,134 +32,133 @@ private:
   void printhelp(BSTNode<Key, E>*, int) const;
   void visit(BSTNode<Key, E>*) const;
 
+  // New helper functions for pre-order and post-order
+  void printPreOrder(BSTNode<Key, E>*) const;
+  void printPostOrder(BSTNode<Key, E>*) const;
+
 public:
   BST() { root = NULL; nodecount = 0; }  // Constructor
-  
-  //Note from Prof Sipantzi -- I've commented out the destructor
-  //since you would have to change clearhelp() to make it work with
-  //doubly-threaded trees and that is not part of the assignment.
-  //~BST() { clearhelp(root); }            // Destructor
 
-  void clear()   // Reinitialize tree
-    { clearhelp(root); root = NULL; nodecount = 0; }
+  // Destructor not used in this assignment
+  //~BST() { clearhelp(root); }
 
-  // Insert a record into the tree.
-  // k Key value of the record.
-  // e The record to insert.
+  void clear() {
+    clearhelp(root);
+    root = NULL;
+    nodecount = 0;
+  }
+
   void insert(const Key& k, const E& e) {
     root = inserthelp(root, k, e);
     nodecount++;
   }
 
-  // Remove a record from the tree.
-  // k Key value of record to remove.
-  // Return: The record removed, or NULL if there is none.
   E* remove(const Key& k) {
-    E* temp = findhelp(root, k);   // First find it
+    E* temp = findhelp(root, k);
     if (temp != NULL) {
       root = removehelp(root, k);
       nodecount--;
     }
     return temp;
   }
-  // Remove and return the root node from the dictionary.
-  // Return: The record removed, null if tree is empty.
-  E* removeAny() {  // Delete min value
+
+  E* removeAny() {
     if (root != NULL) {
       E* temp = new E;
       *temp = root->element();
       root = removehelp(root, root->key());
       nodecount--;
       return temp;
+    } else return NULL;
+  }
+
+  E* find(const Key& k) const {
+    return findhelp(root, k);
+  }
+
+  int size() {
+    return nodecount;
+  }
+
+  void print() const {
+    if (root == NULL) {
+      cout << "The BST is empty.\n";
+      return;
     }
-    else return NULL;
+
+    cout << "\nIn-Order Traversal:\n";
+    printhelp(root, 0);
+
+    cout << "\nPre-Order Traversal:\n";
+    printPreOrder(root);
+
+    cout << "\nPost-Order Traversal:\n";
+    printPostOrder(root);
   }
-
-  // Return Record with key value k, NULL if none exist.
-  // k: The key value to find. */
-  // Return some record matching "k".
-  // Return true if such exists, false otherwise. If
-  // multiple records match "k", return an arbitrary one.
-  E* find(const Key& k) const { return findhelp(root, k); }
-
-  // Return the number of records in the dictionary.
-  int size() { return nodecount; }
-
-  void print() const { // Print the contents of the BST
-    if (root == NULL) cout << "The BST is empty.\n";
-    else printhelp(root, 0);
-  }
-  
 };
 
 // Visit -- prints out root
 template <typename Key, typename E>
 void BST<Key, E>::visit(BSTNode<Key,E>* r) const {
-    cout << "Node - " << r->key() << ' ' << r->element() << endl;
+  cout << "Node - " << r->key() << ' ' << r->element() << endl;
 }
 
-// Clean up BST by releasing space back free store
+// Clean up BST
 template <typename Key, typename E>
-void BST<Key, E>::
-clearhelp(BSTNode<Key, E>* root) {
+void BST<Key, E>::clearhelp(BSTNode<Key, E>* root) {
   if (root == NULL) return;
   clearhelp(root->left());
   clearhelp(root->right());
   delete root;
 }
 
-// Insert a node into the BST, returning the updated tree
+// Insert a node
 template <typename Key, typename E>
 BSTNode<Key, E>* BST<Key, E>::inserthelp(
     BSTNode<Key, E>* root, const Key& k, const E& it) {
-  if (root == NULL)  // Empty tree: create node
+  if (root == NULL)
     return new BSTNode<Key, E>(k, it, NULL, NULL);
   if (k < root->key())
     root->setLeft(inserthelp(root->left(), k, it));
-  else root->setRight(inserthelp(root->right(), k, it));
-  return root;       // Return tree with node inserted
+  else
+    root->setRight(inserthelp(root->right(), k, it));
+  return root;
 }
 
-// Delete the minimum value from the BST, returning the revised BST
+// Get minimum
 template <typename Key, typename E>
-BSTNode<Key, E>* BST<Key, E>::
-getmin(BSTNode<Key, E>* rt) {
-  if (rt->left() == NULL)
-    return rt;
+BSTNode<Key, E>* BST<Key, E>::getmin(BSTNode<Key, E>* rt) {
+  if (rt->left() == NULL) return rt;
   else return getmin(rt->left());
 }
+
 template <typename Key, typename E>
-BSTNode<Key, E>* BST<Key, E>::
-deletemin(BSTNode<Key, E>* rt) {
-  if (rt->left() == NULL) // Found min
+BSTNode<Key, E>* BST<Key, E>::deletemin(BSTNode<Key, E>* rt) {
+  if (rt->left() == NULL)
     return rt->right();
-  else {                      // Continue left
+  else {
     rt->setLeft(deletemin(rt->left()));
     return rt;
   }
 }
 
-// Remove a node with key value k
-// Return: The tree with the node removed
+// Remove node
 template <typename Key, typename E>
-BSTNode<Key, E>* BST<Key, E>::
-removehelp(BSTNode<Key, E>* rt, const Key& k) {
-  if (rt == NULL) return NULL;    // k is not in tree
+BSTNode<Key, E>* BST<Key, E>::removehelp(BSTNode<Key, E>* rt, const Key& k) {
+  if (rt == NULL) return NULL;
   else if (k < rt->key())
     rt->setLeft(removehelp(rt->left(), k));
   else if (k > rt->key())
     rt->setRight(removehelp(rt->right(), k));
-  else {                            // Found: remove it
+  else {
     BSTNode<Key, E>* temp = rt;
-    if (rt->left() == NULL) {     // Only a right child
-      rt = rt->right();         //  so point to right
+    if (rt->left() == NULL) {
+      rt = rt->right();
       delete temp;
-    }
-    else if (rt->right() == NULL) { // Only a left child
-      rt = rt->left();          //  so point to left
+    } else if (rt->right() == NULL) {
+      rt = rt->left();
       delete temp;
-    }
-    else {                    // Both children are non-empty
+    } else {
       BSTNode<Key, E>* temp = getmin(rt->right());
       rt->setElement(temp->element());
       rt->setKey(temp->key());
@@ -172,28 +169,44 @@ removehelp(BSTNode<Key, E>* rt, const Key& k) {
   return rt;
 }
 
-// Find a node with the given key value
+// Find a node
 template <typename Key, typename E>
-E* BST<Key, E>::findhelp(BSTNode<Key, E>* root,
-                              const Key& k) const {
-  if (root == NULL) return NULL;          // Empty tree
+E* BST<Key, E>::findhelp(BSTNode<Key, E>* root, const Key& k) const {
+  if (root == NULL) return NULL;
   if (k < root->key())
-    return findhelp(root->left(), k);   // Check left
+    return findhelp(root->left(), k);
   else if (k > root->key())
-    return findhelp(root->right(), k);  // Check right
+    return findhelp(root->right(), k);
   else {
-      E* temp = new E;
-      *temp = root->element();
-      return temp;  // Found it
+    E* temp = new E;
+    *temp = root->element();
+    return temp;
   }
 }
 
-// Print out a BST
+// In-order print
 template <typename Key, typename E>
-void BST<Key, E>::
-printhelp(BSTNode<Key, E>* root, int level) const {
-  if (root == NULL) return;           // Empty tree
-  printhelp(root->left(), level+1);   // Do left subtree
-  visit(root);						  // Print node value
-  printhelp(root->right(), level+1);  // Do right subtree
+void BST<Key, E>::printhelp(BSTNode<Key, E>* root, int level) const {
+  if (root == NULL) return;
+  printhelp(root->left(), level + 1);
+  visit(root);
+  printhelp(root->right(), level + 1);
+}
+
+// Pre-order print
+template <typename Key, typename E>
+void BST<Key, E>::printPreOrder(BSTNode<Key, E>* root) const {
+  if (root == NULL) return;
+  visit(root);
+  printPreOrder(root->left());
+  printPreOrder(root->right());
+}
+
+// Post-order print
+template <typename Key, typename E>
+void BST<Key, E>::printPostOrder(BSTNode<Key, E>* root) const {
+  if (root == NULL) return;
+  printPostOrder(root->left());
+  printPostOrder(root->right());
+  visit(root);
 }
